@@ -11,7 +11,7 @@ It is very much a work in progress.
 
 #####pollinating a js object
 
-<html><body>
+<body>
 
 var myObj = {myValue:0};
 
@@ -32,7 +32,7 @@ myObj.nodes = {
 
 };
 
-</body><html>
+</body>
 
 the fields type, label, desc are purely for ide or other descriptive use
 
