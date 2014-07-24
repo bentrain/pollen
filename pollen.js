@@ -252,8 +252,95 @@ var Pollen = new (function(){
 							Pollen.exchange.report(_this.pollenID,"value",_val,"counter.subtract");
 						}
 					
+					},
+					clear:{
+						type:"boolean",
+						label:"Clear",
+						desc:"Clears the value of the counter",
+						get:function(){ return false; },
+						set:function(){
+							_val = 0;
+							Pollen.exchange.report(_this.pollenID,"value",_val,"counter.clear");
+						}
+					
 					}
 				
+				}
+			
+			},
+			
+			calculator:function(){
+			
+				var _this = this;
+				
+				var _val = 0;
+								
+				this.label = "Calculator";
+				this.desc = "Used to calculator numbers"; 
+				this.nodes = {
+				
+					value:{
+						type:"number",
+						label:"Value",
+						desc:"The current value of the calculator",
+						get:function(){ return _val; },
+						set:function(v){
+							_val = v;
+							Pollen.exchange.report(_this.pollenID,"add",v,"calculator.value");
+						}
+					},
+					add:{
+						type:"number",
+						label:"Add",
+						desc:"Add a number to the current value",
+						get:function(){ return _val; },
+						set:function(v){
+							_val += v;
+							Pollen.exchange.report(_this.pollenID,"value",_val,"calculator.add");
+						}
+					},
+					subtract:{
+						type:"number",
+						label:"Subtract",
+						desc:"Subtract a number from the current value",
+						get:function(){ return _val; },
+						set:function(v){
+							_val -= v;
+							Pollen.exchange.report(_this.pollenID,"value",_val,"calculator.subtract");
+						}
+					},
+					multiply:{
+						type:"number",
+						label:"Multiply",
+						desc:"Multiply the value by this number",
+						get:function(){ return _val; },
+						set:function(v){
+							_val *= v;
+							Pollen.exchange.report(_this.pollenID,"value",_val,"calculator.multiply");
+						}
+					},
+					divide:{
+						type:"number",
+						label:"Divide",
+						desc:"Divide the value by this number",
+						get:function(){ return _val; },
+						set:function(v){
+							_val /= v;
+							Pollen.exchange.report(_this.pollenID,"value",_val,"calculator.divide");
+						}
+					},
+					clear:{
+						type:"boolean",
+						label:"Clear",
+						desc:"Clears the value of the calculator",
+						get:function(){ return false; },
+						set:function(){
+							_val = 0;
+							Pollen.exchange.report(_this.pollenID,"value",_val,"calculator.clear");
+						}
+					
+					}
+					
 				}
 			
 			},
@@ -1182,44 +1269,50 @@ var Pollen = new (function(){
 		return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string";
 	}
 	
+	this.pollinate = function(){
+        
+		var o;
 		
-	this.pollinate = function(o){
-            	
-		var _isDOM = isDOM(o);
+		for(var obj in arguments){
+		
+			o = arguments[obj];
+		
+			var _isDOM = isDOM(o);
 
-		if((!_isDOM && !o.isPollinated) || (_isDOM && !o.className.indexOf('pollinated') > -1)){
+			if((!_isDOM && !o.isPollinated) || (_isDOM && !o.className.indexOf('pollinated') > -1)){
 			
-			var _id = UID();
+				var _id = UID();
 			
-			if(_isDOM){
-				console.log(o)
-				o.setAttribute('pollenID',_id);
-				o.className += "pollinated";
-			}else{
-				o.isPollinated = true;
-				o.pollenID = _id;
-			}
+				if(_isDOM){
+					console.log(o)
+					o.setAttribute('pollenID',_id);
+					o.className += "pollinated";
+				}else{
+					o.isPollinated = true;
+					o.pollenID = _id;
+				}
 
-			if(!isDOM && !o.hasDefaultNodes){ 
-				addDefaultNodes(o);
-			}
+				if(!isDOM && !o.hasDefaultNodes){ 
+					addDefaultNodes(o);
+				}
 			
-			if(!_isDOM){
+				if(!_isDOM){
 							
-				o.hasNode = function(p){
-					return o.nodes[p];
+					o.hasNode = function(p){
+						return o.nodes[p];
+					}
+			
+					o.setNode = function(p,v){
+						o.nodes[p].set(v);
+						Pollen.exchange.report(o.pollenID,p,v,"Pollinate.setNode");
+					}
+			
+					o.getNode = function(p){
+						return o.nodes[p].get();
+					}
 				}
 			
-				o.setNode = function(p,v){
-					o.nodes[p].set(v);
-					Pollen.exchange.report(o.pollenID,p,v,"Pollinate.setNode");
-				}
-			
-				o.getNode = function(p){
-					return o.nodes[p].get();
-				}
 			}
-			
 		}
 			
     };
