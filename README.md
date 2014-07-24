@@ -7,16 +7,17 @@ pollen is a basic framework for building connections and binding between js obje
 It is very much a work in progress.
 
 
-####basic usage
+###basic usage
+
 
 #####pollinating a js object
 
-<body>
 
+```javascript
 var myObj = {myValue:0};
-
+```
 to expose some connectable nodes we create a node object
-
+```javascript
 myObj.nodes = {
 
   myNode:{
@@ -31,32 +32,38 @@ myObj.nodes = {
 	}
 
 };
-
-</body>
+```
 
 the fields type, label, desc are purely for ide or other descriptive use
 
 now we can pollinate our object so it is ready to connect
 
-<html><body>Pollen.pollinate(myObj);</body></html>
-
+```javascript
+Pollen.pollinate(myObj);</javascript>
+```
 it is now ready to use
 
 this is how we connect it's to another node
 
-<html><body>Pollen.exchange.connect(myObj,'myNode',myOtherObj,'myOtherNode');</body></html>
+```javascript
+Pollen.exchange.connect(myObj,'myNode',myOtherObj,'myOtherNode');
+```
 
 the two nodes are now connected
 
 you can set a node value explicitly like this
 
-<html><body>myObj.setNode('myNode',123);</body></html>
+```javascript
+myObj.setNode('myNode',123);
+```
 
 in this case the value of the node myOtherNode on the object myOtherObject would instantly become 123
 
 we can also report a change to a node arbitarily
 
-<html><body>Pollen.exchange.report(myObj.pollenID,"myNode",v,"some msg for debugging if needed");</body></html>
+```javascript
+Pollen.exchange.report(myObj.pollenID,"myNode",v,"some msg for debugging if needed");
+```
 
 you might notice we do this in the set method of the example node. this keeps the data flowing around the system
 why don't we just automatically watch this value? well, sometimes you might need to do complex calculations before 
@@ -67,8 +74,7 @@ sending off the value or you might even want to stop propagation and instead tri
 
 dom elements work in a similar way
 
-<html><body>
-
+```html
 <input id="myInput" type="text">
 
 <script>
@@ -76,16 +82,13 @@ dom elements work in a similar way
   Pollen.pollinate(document.getElementById('myInput'));
 
 </script>
+```
 
-</body></html>
-
-dom elements can use either attributes or properties as nodes, so in the case of this <input> object either type or value would work
+dom elements can use either attributes or properties as nodes, so in the case of this input object either type or value would work
 
 we can also link js objects and dom objects together, here is a basic calculator example below 
 
-<html>
-  <body>
-  
+```html
     <h3>The Adder</h3>
     </br>
     <label>Add Number</label><input id="add" type="text">
@@ -112,13 +115,9 @@ we can also link js objects and dom objects together, here is a basic calculator
       Pollen.exchange.connect(c,'value',r,'value'); // connect calculator obj value the result input
       
       // And we are done!
-      
-    
-    </script>
-  
-  </body>
 
-</html>
+    </script>
+```
 
 
 
