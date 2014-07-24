@@ -11,7 +11,7 @@ It is very much a work in progress.
 
 #####pollinating a js object
 
-<html>
+<html><body>
 
 var myObj = {myValue:0};
 
@@ -32,31 +32,31 @@ myObj.nodes = {
 
 };
 
-<html>
+</body><html>
 
 the fields type, label, desc are purely for ide or other descriptive use
 
 now we can pollinate our object so it is ready to connect
 
-<html>Pollen.pollinate(myObj);</html>
+<html><body>Pollen.pollinate(myObj);</body></html>
 
 it is now ready to use
 
 this is how we connect it's to another node
 
-<html>Pollen.exchange.connect(myObj,'myNode',myOtherObj,'myOtherNode');</html>
+<html><body>Pollen.exchange.connect(myObj,'myNode',myOtherObj,'myOtherNode');</body></html>
 
 the two nodes are now connected
 
 you can set a node value explicitly like this
 
-<html>myObj.setNode('myNode',123);</html>
+<html><body>myObj.setNode('myNode',123);</body></html>
 
 in this case the value of the node myOtherNode on the object myOtherObject would instantly become 123
 
 we can also report a change to a node arbitarily
 
-<html>Pollen.exchange.report(myObj.pollenID,"myNode",v,"some msg for debugging if needed");</html>
+<html><body>Pollen.exchange.report(myObj.pollenID,"myNode",v,"some msg for debugging if needed");</body></html>
 
 you might notice we do this in the set method of the example node. this keeps the data flowing around the system
 why don't we just automatically watch this value? well, sometimes you might need to do complex calculations before 
@@ -67,7 +67,7 @@ sending off the value or you might even want to stop propagation and instead tri
 
 dom elements work in a similar way
 
-<html>
+<html><body>
 
 <input id="myInput" type="text">
 
@@ -77,18 +77,13 @@ dom elements work in a similar way
 
 </script>
 
-</html>
+</body></html>
 
 dom elements can use either attributes or properties as nodes, so in the case of this <input> object either type or value would work
 
 we can also link js objects and dom objects together, here is a basic calculator example below 
 
 <html>
-  
-  <head>
-    <script src="pollen.js"></script>
-  </head>
-  
   <body>
   
     <h3>The Adder</h3>
