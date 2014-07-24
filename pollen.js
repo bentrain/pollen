@@ -1,32 +1,83 @@
 var Pollen = new (function(){
     
     
-	// registers
-	
 	var connections = [];
+		
 	
 	this.exchange = (function(){
 	
+		var _watchInterval = 10 // mileseconds 
+		
 		var _connections = [];
 		
+		this.connectionType = {nodeToNode:0,nodeToAttribute:1,attributeToNode:2,attributeToAttribute:3};
 		
-		this.makeConnection = function(fO,fN,tO,tN){
+		this.getConnections = function(){ return _connections;};
+		
+		this.connect = function(F,f,T,t){
 			
-			if(fO.hasNode(fN) && tO.hasNode(tN)) _connections.push({from:fO,to:tO,fromNode:fN,toNode:tN});
+			var tp = this.connectionType.nodeToNode;
+			if(isDOM(F)) tp = this.connectionType.attributeToNode;
+			if(isDOM(T)) tp = this.connectionType.nodeToAttribute;
+			if(isDOM(F) && isDOM(T)) tp = this.connectionType.attributeToAttribute;			
+			
+			console.log(tp);
+			
+			
+			switch(tp){
+				case this.connectionType.nodeToNode:
+					if(F.hasNode(f) && T.hasNode(t)){ _connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t}); return;};
+				case this.connectionType.nodeToAttribute:
+					if(F.hasNode(f) && (T.hasAttribute(t) || T[t] != undefined)){ _connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t}); return;};
+				case this.connectionType.attributeToNode:
+					if((F.hasAttribute(f) || F[f] != undefined ) && T.hasNode(t)){ _connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t}); return;};
+				case this.connectionType.attributeToAttribute:
+					if((F.hasAttribute(f) || F[f] != undefined ) && (T.hasAttribute(t) || T[t] != undefined)){ _connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t}); return;};
+						
+
+			}
+			
+			return false;
+			
+			
 		};
 		
-		this.breakConnection = function(fO,fN,tO,tN){
+		this.disconnect = function(F,f,T,t){
+			
+			var tp = this.connectionType.nodeToNode;
+			if(isDOM(F)) tp = this.connectionType.attributeToNode;
+			if(isDOM(T)) tp = this.connectionType.nodeToAttribute;
+			if(isDOM(F) && isDOM(T)) tp = this.connectionType.attributeToAttribute;	
 			
 			for(var conn in _connections){
-				if(_connections[conn].from.pollenID == fO.pollenID && _connections[conn].to.pollenID == tO.pollenID && _connections[conn].fromNode == fN && _connections[conn].toNode == tN) _connections.splice(conn,1);
+				switch(tp){
+					case this.connectionType.nodeToNode:
+						if(_connection[conn].type == tp && _connections[conn].from.pollenID == F.pollenID && _connections[conn].to.pollenID == T.pollenID && _connections[conn].fromNode == f && _connections[conn].toNode == t){ _connections.splice(conn,1); return;};
+					case this.connectionType.attributeToNode:
+						if(_connection[conn].type == tp && _connections[conn].from.getAttribute("pollenID") == F.getAttribute("pollenID") && _connections[conn].to.pollenID == T.pollenID && _connections[conn].fromNode == f && _connections[conn].toNode == t){ _connections.splice(conn,1); return;};
+					case this.connectionType.nodeToAttribute:
+						if(_connection[conn].type == tp && _connections[conn].from.pollenID == F.pollenID && _connections[conn].to.getAttribute("pollenID") == T.getAttribute("pollenID") && _connections[conn].fromNode == f && _connections[conn].toNode == t){ _connections.splice(conn,1); return;};
+					case this.connectionType.AttributeToAttribute:
+						if(_connection[conn].type == tp && _connections[conn].from.getAttribute("pollenID") == F.getAttribute("pollenID") && _connections[conn].to.getAttribute("pollenID") == T.getAttribute("pollenID") && _connections[conn].fromNode == f && _connections[conn].toNode == t){ _connections.splice(conn,1); return;};
+					
+				
+				
+				}
+				
+				return false;
+			
 			}			
 		};	
 
-		this.breakConnectionsForObject = function(o){
+		this.disconnectObject = function(o){
 			
+			// needs reworking for DOM addition
+			/*
 			for(var conn in _connections){
 				if(_connections[conn].from.pollenID == o.pollenID || _connections[conn].to.pollenID == o.pollenID) _connections.splice(conn,1);
 			}
+			
+			*/
 		}
 		
 		
@@ -34,15 +85,78 @@ var Pollen = new (function(){
 		this.report = function(i,p,v,msg){
 		
 			msg = msg || "";
+			
+			console.log("Report:",i,p,v,msg);
+			
+			var c, cn;	
+				
+			for(var cn in _connections){
+				
+				c = _connections[cn];
 						
-			for(var conn in _connections){
-				if(_connections[conn].from.pollenID == i && _connections[conn].fromNode == p){
-					if(_connections[conn].to.getNode(_connections[conn].toNode) !== v){
-						_connections[conn].to.setNode(_connections[conn].toNode,v);
+				var tp = this.connectionType.nodeToNode;
+				if(isDOM(c.from)) tp = this.connectionType.attributeToNode;
+				if(isDOM(c.to)) tp = this.connectionType.nodeToAttribute;
+				if(isDOM(c.from) && isDOM(c.to)) tp = this.connectionType.attributeToAttribute;	
+				
+				switch(tp){
+				
+					case this.connectionType.nodeToNode:
+						if(c.from.pollenID == i && c.fromNode == p){
+							if(c.to.getNode(c.toNode) !== v){
+								c.to.setNode(c.toNode,v);
+							}
+						}
+						break;
+					case this.connectionType.nodeToAttribute:
+						if(c.from.pollenID == i && c.fromNode == p){
+							if(c.to.getAttribute(c.toNode) !== v || c.to[c.toNode] !== v){
+								c.to.setAttribute(c.toNode,v);
+								if(c.to[c.toNode] != undefined) c.to[c.toNode] = v;
+							}
+						}
+						break;
+					case this.connectionType.attributeToNode:
+						if(c.from.getAttribute("pollenID") == i && c.fromNode == p){
+							if(c.to.getNode(c.toNode) !== v){
+								c.to.setNode(c.toNode,v);
+							}
+						}
+						break;
+					case this.connectionType.attributeToAttribute:
+						if(c.from.getAttribute("pollenID") == i && c.fromNode == p){
+							if(c.to.getAttribute(c.toNode) !== v || c.to[c.toNode] !== v){
+								c.to.setAttribute(c.toNode,v);
+								if(c.to[c.toNode] != undefined) c.to[c.toNode] = v;
+							}
+						}
+						break;
+					
+				
+				}
+				
+			}
+			
+		}
+		
+		// TO DO implement a nicer attribute watch system for DOM
+		
+		function watchConnections(){
+			var c, cn, v;
+			for(cn in _connections){
+				c = _connections[cn];
+				if(c.type == this.connectionType.attributeToNode || c.type == this.connectionType.attributeToAttribute){
+					v = c.from.getAttribute(c.fromNode);
+					if(c.from[c.fromNode] != undefined) v = c.from[c.fromNode];
+					if(c.lastValue != v){
+						c.lastValue = v;
+						this.report(c.from.getAttribute('pollenID'),c.fromNode,v);
 					}
 				}
 			}
 		}
+		
+		setInterval(watchConnections,_watchInterval);
 	
 		return this;
 		
@@ -734,13 +848,13 @@ var Pollen = new (function(){
 				
 				var _this = this;
 				
-				var _methods = ["linear","easeOutQuad"];
+				var _methods = ["linear","easeInQuad","easeOutQuad"];
 				var _startValue = 0;
 				var _endValue = 0;
 				var _output = 0;
 				var _dur = 1000;
 				var _stt = 0;
-				var _method = 1;
+				var _method = 0;
 				var _timer;
 				var _int = 10;
 				var _playing = false;
@@ -980,7 +1094,7 @@ var Pollen = new (function(){
 						get:function(){return _x;},
 						set:function(v){
 							_x = v;
-							_dom.style.left = v;
+							_dom.style.left = v + "px";
 							Pollen.exchange.report(_this.pollenID,"x",_x,"documentObject.x");
 						}
 					},
@@ -991,7 +1105,7 @@ var Pollen = new (function(){
 						get:function(){ return _y;},
 						set:function(v){
 							_y = v;
-							_dom.style.top = v;
+							_dom.style.top = v + "px";
 							Pollen.exchange.report(_this.pollenID,"y",_y,"documentObject.x");
 						}
 					},
@@ -1002,7 +1116,7 @@ var Pollen = new (function(){
 						get:function(){return _width;},
 						set:function(v){
 							_width = v;
-							_dom.style.width = v;
+							_dom.style.width = v = "px";
 							Pollen.exchange.report(_this.pollenID,"width",_width,"documentObject.width");
 						}
 					},
@@ -1013,7 +1127,7 @@ var Pollen = new (function(){
 						get:function(){return _height;},
 						set:function(v){
 							_height = v;
-							_dom.style.height = v;
+							_dom.style.height = v + "px";
 							Pollen.exchange.report(_this.pollenID,"height",_height,"documentObject.height");
 						}
 					}
@@ -1064,34 +1178,46 @@ var Pollen = new (function(){
 		
 	}
 	
+	function isDOM(o){
+		return typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string";
+	}
 	
-	
+		
 	this.pollinate = function(o){
-            
-		if(!o.isPollinated){
+            	
+		var _isDOM = isDOM(o);
+
+		if((!_isDOM && !o.isPollinated) || (_isDOM && !o.className.indexOf('pollinated') > -1)){
 			
-			o.isPollinated = true;
-			o.pollenID = UID();
+			var _id = UID();
 			
-			// check if nodes object exists, if not create.
-			
-			if(!o.hasDefaultNodes){ 
+			if(_isDOM){
+				console.log(o)
+				o.setAttribute('pollenID',_id);
+				o.className += "pollinated";
+			}else{
+				o.isPollinated = true;
+				o.pollenID = _id;
+			}
+
+			if(!isDOM && !o.hasDefaultNodes){ 
 				addDefaultNodes(o);
 			}
 			
-			// setup basic property set and get methods
+			if(!_isDOM){
+							
+				o.hasNode = function(p){
+					return o.nodes[p];
+				}
 			
-			o.hasNode = function(p){
-				return o.nodes[p];
-			}
+				o.setNode = function(p,v){
+					o.nodes[p].set(v);
+					Pollen.exchange.report(o.pollenID,p,v,"Pollinate.setNode");
+				}
 			
-			o.setNode = function(p,v){
-				o.nodes[p].set(v);
-				Pollen.exchange.report(o.pollenID,p,v,"Pollinate.setNode");
-			}
-			
-			o.getNode = function(p){
-				return o.nodes[p].get();
+				o.getNode = function(p){
+					return o.nodes[p].get();
+				}
 			}
 			
 		}
@@ -1100,40 +1226,6 @@ var Pollen = new (function(){
         
        
 })();
-
-
-
-
-var t = Pollen.factory.make("logic.andGate");
-
-var o = Pollen.factory.make("logic.outputSwitch");
-
-var tw = Pollen.factory.make("logic.tweener");
-
-
-var dom = document.getElementsByClassName("pln-ui-element")[0];
-
-var dobj = Pollen.factory.make("ui.documentObject",dom);
-
-tw.setNode("duration",3000);
-tw.setNode("startValue",0);
-tw.setNode("endValue",500);
-
-
-
-
-t.setNode("data","hello");
-
-Pollen.exchange.makeConnection(t,"data",o,"data");
-Pollen.exchange.makeConnection(o,"output0",tw,"play");
-Pollen.exchange.makeConnection(tw,"output",dobj,"x");
-Pollen.exchange.makeConnection(tw,"finished",tw,"play");
-
-
-t.setNode("conditionA",true);
-
-
-t.setNode("conditionB",true,">>>");
 
 
 
