@@ -1,25 +1,21 @@
-    __   ___    /  / ___   __
-  /   \ /   \  /  / / __\ /  \
- /  __/ \___/ /  /  \__  /   / 
-/
+#pollen
 
 
-overview
-========
+###overview
 
 pollen is a basic framework for building connections and binding between js objects and DOM objects.
 It is very much a work in progress.
 
 
-basic usage
-===========
+####basic usage
 
-pollinating a JS object
------------------------
+#####pollinating a js object
+
+<html>
 
 var myObj = {myValue:0};
 
-// to expose some connectable nodes we create a node object
+to expose some connectable nodes we create a node object
 
 myObj.nodes = {
 
@@ -36,39 +32,42 @@ myObj.nodes = {
 
 };
 
-// the fields type, label, desc are purely for ide or other descriptive use
+<html>
 
-// now we can pollinate our object so it is ready to connect
+the fields type, label, desc are purely for ide or other descriptive use
 
-Pollen.pollinate(myObj);
+now we can pollinate our object so it is ready to connect
 
-// it is now ready to use
+<html>Pollen.pollinate(myObj);</html>
 
-// this is how we connect it's to another node
+it is now ready to use
 
-Pollen.exchange.connect(myObj,'myNode',myOtherObj,'myOtherNode');
+this is how we connect it's to another node
 
-// the two nodes are now connected
+<html>Pollen.exchange.connect(myObj,'myNode',myOtherObj,'myOtherNode');</html>
 
-// you can set a node value explicitly like this
+the two nodes are now connected
 
-myObj.setNode('myNode',123);
+you can set a node value explicitly like this
 
-// in this case the value of the node myOtherNode on the object myOtherObject would instantly become 123
+<html>myObj.setNode('myNode',123);</html>
 
-// we can also report a change to a node arbitarily
+in this case the value of the node myOtherNode on the object myOtherObject would instantly become 123
 
-Pollen.exchange.report(myObj.pollenID,"myNode",v,"some msg for debugging if needed");
+we can also report a change to a node arbitarily
 
-// you might notice we do this in the set method of the example node. this keeps the data flowing around the system
-// why don't we just automatically watch this value? well, sometimes you might need to do complex calculations before 
-// sending off the value or you might even want to stop propagation and instead trigger a different node
+<html>Pollen.exchange.report(myObj.pollenID,"myNode",v,"some msg for debugging if needed");</html>
+
+you might notice we do this in the set method of the example node. this keeps the data flowing around the system
+why don't we just automatically watch this value? well, sometimes you might need to do complex calculations before 
+sending off the value or you might even want to stop propagation and instead trigger a different node
 
 
-pollinating a DOM element
--------------------------
+#####pollinating a dom object
 
-// dom elements work in a similar way
+dom elements work in a similar way
+
+<html>
 
 <input id="myInput" type="text">
 
@@ -78,9 +77,11 @@ pollinating a DOM element
 
 </script>
 
-// dom elements can use either attributes or properties as nodes, so in the case of this <input> object either type or value would work
+</html>
 
-// we can also link js objects and dom objects together, here is a basic calculator example below 
+dom elements can use either attributes or properties as nodes, so in the case of this <input> object either type or value would work
+
+we can also link js objects and dom objects together, here is a basic calculator example below 
 
 <html>
   
@@ -123,7 +124,6 @@ pollinating a DOM element
   </body>
 
 </html>
-
 
 
 
