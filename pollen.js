@@ -285,7 +285,7 @@ var Pollen = new (function(){
 						desc:"The current value of the calculator",
 						get:function(){ return _val; },
 						set:function(v){
-							_val = v;
+							_val = Number(v);
 							Pollen.exchange.report(_this.pollenID,"add",v,"calculator.value");
 						}
 					},
@@ -295,7 +295,7 @@ var Pollen = new (function(){
 						desc:"Add a number to the current value",
 						get:function(){ return _val; },
 						set:function(v){
-							_val += v;
+							_val += Number(v);
 							Pollen.exchange.report(_this.pollenID,"value",_val,"calculator.add");
 						}
 					},
@@ -305,7 +305,7 @@ var Pollen = new (function(){
 						desc:"Subtract a number from the current value",
 						get:function(){ return _val; },
 						set:function(v){
-							_val -= v;
+							_val -= Number(v);
 							Pollen.exchange.report(_this.pollenID,"value",_val,"calculator.subtract");
 						}
 					},
@@ -315,7 +315,7 @@ var Pollen = new (function(){
 						desc:"Multiply the value by this number",
 						get:function(){ return _val; },
 						set:function(v){
-							_val *= v;
+							_val *= Number(v);
 							Pollen.exchange.report(_this.pollenID,"value",_val,"calculator.multiply");
 						}
 					},
@@ -325,7 +325,7 @@ var Pollen = new (function(){
 						desc:"Divide the value by this number",
 						get:function(){ return _val; },
 						set:function(v){
-							_val /= v;
+							_val /= Number(v);
 							Pollen.exchange.report(_this.pollenID,"value",_val,"calculator.divide");
 						}
 					},
