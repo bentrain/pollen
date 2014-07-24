@@ -43,7 +43,7 @@ Pollen.pollinate(myObj);
 ```
 it is now ready to use
 
-this is how we connect it's to another node
+this is how we connect it's node to another node
 
 ```javascript
 Pollen.exchange.connect(myObj,'myNode',myOtherObj,'myOtherNode');
