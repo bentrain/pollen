@@ -21,7 +21,7 @@ to expose some connectable nodes we create a node object
 myObj.nodes = {
 
   myNode:{
-	  type:"number",
+	    type:"number",
 		label:"myNode",
 		desc:"My favourite node",
 		get:function(){ return myObj.myValue; },
@@ -39,7 +39,7 @@ the fields type, label, desc are purely for ide or other descriptive use
 now we can pollinate our object so it is ready to connect
 
 ```javascript
-Pollen.pollinate(myObj);</javascript>
+Pollen.pollinate(myObj);
 ```
 it is now ready to use
 
