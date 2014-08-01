@@ -36,6 +36,13 @@ myObj.nodes = {
 
 the fields type, label, desc are purely for ide or other descriptive use
 
+although is is not recommended we can also use lazy js object properties to join to
+
+```javascript
+var myLazyObj = {name:'myName'};
+```
+here we can join straight onto the property name but we lose the benefits of having getters and setters among other things
+
 now we can pollinate our object so it is ready to connect
 
 ```javascript
@@ -65,9 +72,12 @@ we can also report a change to a node arbitarily
 Pollen.exchange.report(myObj.pollenID,"myNode",v,"some msg for debugging if needed");
 ```
 
-you might notice we do this in the set method of the example node. this keeps the data flowing around the system
+you might notice we do this in the set method of the example node above. this keeps the data flowing around the system
+
 why don't we just automatically watch this value? well, sometimes you might need to do complex calculations before 
-sending off the value or you might even want to stop propagation and instead trigger a different node
+sending off the value or you might even want to stop propagation and instead trigger a different node.
+
+If you don't care for this you might use a lazy node as above
 
 
 #####pollinating a dom object
@@ -84,7 +94,7 @@ dom elements work in a similar way
 </script>
 ```
 
-dom elements can use either attributes or properties as nodes, so in the case of this input object either type or value would work
+a dom element's attributes become joinable nodes
 
 we can also link js objects and dom objects together, here is a basic calculator example below 
 
