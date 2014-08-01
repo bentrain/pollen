@@ -10,31 +10,112 @@ var Pollen = new (function(){
 		
 		var _connections = [];
 		
-		this.connectionType = {nodeToNode:0,nodeToAttribute:1,attributeToNode:2,attributeToAttribute:3};
+		this.connectionType = {nodeToNode:0,
+								nodeToAttribute:1,
+								attributeToNode:2,
+								attributeToAttribute:3,
+								nodeToProperty:4,
+								propertyToNode:5,
+								attributeToProperty:6,
+								propertyToAttribute:7,
+								propertyToProperty:8}
+								
+		function getConnectionType(F,f,T,t){
+			
+			var tp1 = "nodeTo";
+			var tp2 = "Node";
+						
+			if(isDOM(F)) tp1 = "attributeTo";
+			if(isDOM(T)) tp2 = "Attribute";
+			if(!isDOM(F) && F.nodes == undefined) tp1 = "propertyTo";
+			if(!isDOM(T) && T.nodes == undefined) tp2 = "Property";
+			
+			return this.connectionType[tp1+tp2];
+		}
+		
 		
 		this.getConnections = function(){ return _connections;};
 		
 		this.connect = function(F,f,T,t){
 			
-			var tp = this.connectionType.nodeToNode;
-			if(isDOM(F)) tp = this.connectionType.attributeToNode;
-			if(isDOM(T)) tp = this.connectionType.nodeToAttribute;
-			if(isDOM(F) && isDOM(T)) tp = this.connectionType.attributeToAttribute;			
-			
-			console.log(tp);
-			
+			var tp = getConnectionType(F,f,T,t);
 			
 			switch(tp){
+				
 				case this.connectionType.nodeToNode:
-					if(F.hasNode(f) && T.hasNode(t)){ _connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t}); return;};
+					if(F.hasNode(f) && T.hasNode(t)){
+						_connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t});
+						return;
+					};
+				
 				case this.connectionType.nodeToAttribute:
-					if(F.hasNode(f) && (T.hasAttribute(t) || T[t] != undefined)){ _connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t}); return;};
+					if(F.hasNode(f) && (T.hasAttribute(t) || T[t] != undefined)){
+						_connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t});
+						return;
+					};
+				
 				case this.connectionType.attributeToNode:
-					if((F.hasAttribute(f) || F[f] != undefined ) && T.hasNode(t)){ _connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t}); return;};
+					if((F.hasAttribute(f) || F[f] != undefined ) && T.hasNode(t)){
+						Pollen.exchange.observer.watch(F,f,function(v){
+							this.report(v.object.getAttribute('pollenID'),v.property,v.newValue);
+						});
+						_connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t});
+						return;
+					};
+				
 				case this.connectionType.attributeToAttribute:
-					if((F.hasAttribute(f) || F[f] != undefined ) && (T.hasAttribute(t) || T[t] != undefined)){ _connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t}); return;};
+					if((F.hasAttribute(f) || F[f] != undefined ) && (T.hasAttribute(t) || T[t] != undefined)){
+						Pollen.exchange.observer.watch(F,f,function(v){
+							this.report(v.object.getAttribute('pollenID'),v.property,v.newValue);
+						});
+						_connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t});
+						return;
+					};
+					
+				case this.connectionType.nodeToProperty:
+					if(F.hasNode(f) && T[t] != undefined){
+						_connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t});
+						return;
+					};
+				
+				case this.connectionType.propertyToNode:
+					if(F[f] != undefined && T.hasNode(t)){
+						Pollen.exchange.observer.watch(F,f,function(v){
+							this.report(v.object.pollenID,v.property,v.newValue);
+						});
+						_connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t});
+						return;
+					};
 						
+				case this.connectionType.propertyToAttribute:
+					if(F[f] != undefined && T.hasAttribute(t)){
+						Pollen.exchange.observer.watch(F,f,function(v){
+							this.report(v.object.pollenID,v.property,v.newValue);
+						});
+						_connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t});
+						return;
+					};
+				
+				case this.connectionType.attributeToProperty:
+					if(F.hasAttribute(f) && T[t] != undefined){
+						Pollen.exchange.observer.watch(F,f,function(v){
+							this.report(v.object.getAttribute('pollenID'),v.property,v.newValue);
+						});
+						_connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t});
+						return;
+					};
+					
+				case this.connectionType.propertyToProperty:
+					if(F[f] != undefined && T[t] != undefined){
+						Pollen.exchange.observer.watch(F,f,function(v){
+							this.report(v.object.pollenID,v.property,v.newValue);
+						});
+						_connections.push({type:tp,from:F,to:T,fromNode:f,toNode:t});
+						return;
+					};
 
+							
+				
 			}
 			
 			return false;
@@ -42,25 +123,41 @@ var Pollen = new (function(){
 			
 		};
 		
+		
+		
+		
 		this.disconnect = function(F,f,T,t){
 			
-			var tp = this.connectionType.nodeToNode;
-			if(isDOM(F)) tp = this.connectionType.attributeToNode;
-			if(isDOM(T)) tp = this.connectionType.nodeToAttribute;
-			if(isDOM(F) && isDOM(T)) tp = this.connectionType.attributeToAttribute;	
+			var tp = getConnectionType(F,f,T,t);
 			
 			for(var conn in _connections){
+				var c = _connections[conn];
 				switch(tp){
-					case this.connectionType.nodeToNode:
-						if(_connection[conn].type == tp && _connections[conn].from.pollenID == F.pollenID && _connections[conn].to.pollenID == T.pollenID && _connections[conn].fromNode == f && _connections[conn].toNode == t){ _connections.splice(conn,1); return;};
-					case this.connectionType.attributeToNode:
-						if(_connection[conn].type == tp && _connections[conn].from.getAttribute("pollenID") == F.getAttribute("pollenID") && _connections[conn].to.pollenID == T.pollenID && _connections[conn].fromNode == f && _connections[conn].toNode == t){ _connections.splice(conn,1); return;};
-					case this.connectionType.nodeToAttribute:
-						if(_connection[conn].type == tp && _connections[conn].from.pollenID == F.pollenID && _connections[conn].to.getAttribute("pollenID") == T.getAttribute("pollenID") && _connections[conn].fromNode == f && _connections[conn].toNode == t){ _connections.splice(conn,1); return;};
-					case this.connectionType.AttributeToAttribute:
-						if(_connection[conn].type == tp && _connections[conn].from.getAttribute("pollenID") == F.getAttribute("pollenID") && _connections[conn].to.getAttribute("pollenID") == T.getAttribute("pollenID") && _connections[conn].fromNode == f && _connections[conn].toNode == t){ _connections.splice(conn,1); return;};
 					
-				
+					case this.connectionType.nodeToNode:
+						if(c.type == tp && c.from.pollenID == F.pollenID && c.to.pollenID == T.pollenID && c.fromNode == f && c.toNode == t){ _connections.splice(conn,1); return;};
+					
+					case this.connectionType.attributeToNode:
+						if(c.type == tp && c.from.getAttribute("pollenID") == F.getAttribute("pollenID") && c.to.pollenID == T.pollenID && c.fromNode == f && c.toNode == t){ this.exchange.observer.ignore(c.from,c.fromNode); _connections.splice(conn,1); return;};
+					
+					case this.connectionType.nodeToAttribute:
+						if(c.type == tp && c.from.pollenID == F.pollenID && c.to.getAttribute("pollenID") == T.getAttribute("pollenID") && c.fromNode == f && c.toNode == t){ _connections.splice(conn,1); return;};
+					
+					case this.connectionType.AttributeToAttribute:
+						if(c.type == tp && c.from.getAttribute("pollenID") == F.getAttribute("pollenID") && c.to.getAttribute("pollenID") == T.getAttribute("pollenID") && c.fromNode == f && c.toNode == t){ this.exchange.observer.ignore(c.from,c.fromNode); _connections.splice(conn,1); return;};
+					
+					case this.connectionType.nodeToProperty:
+						if(c.type == tp && c.from.pollenID == F.pollenID && c.to.pollenID == T.pollenID && c.fromNode == f && c.toNode == t){ _connections.splice(conn,1); return;};
+					case this.connectionType.propertyToNode:
+					case this.connectionType.propertyToProperty:
+						if(c.type == tp && c.from.pollenID == F.pollenID && c.to.pollenID == T.pollenID && c.fromNode == f && c.toNode == t){ _connections.splice(conn,1); this.exchange.observer.ignore(c.from,c.fromNode); return;};
+					
+					case this.connectionType.propertyToAttribute:
+						if(c.type == tp && c.from.pollenID == F.pollenID && c.to.getAttribute("pollenID") == T.getAttribute("pollenID") && c.fromNode == f && c.toNode == t){ this.exchange.observer.ignore(c.from,c.fromNode); _connections.splice(conn,1); return;};
+					
+					case this.connectionType.attributeToNode:
+						if(c.type == tp && c.from.getAttribute("pollenID") == F.getAttribute("pollenID") && c.to.pollenID == T.pollenID && c.fromNode == f && c.toNode == t){ this.exchange.observer.ignore(c.from,c.fromNode); _connections.splice(conn,1); return;};
+					
 				
 				}
 				
@@ -81,12 +178,10 @@ var Pollen = new (function(){
 		}
 		
 		
-		// report a node change
+		// report a node change (pollenID,node|attribute|property,debug msg[optional])
 		this.report = function(i,p,v,msg){
 		
 			msg = msg || "";
-			
-			console.log("Report:",i,p,v,msg);
 			
 			var c, cn;	
 				
@@ -94,10 +189,7 @@ var Pollen = new (function(){
 				
 				c = _connections[cn];
 						
-				var tp = this.connectionType.nodeToNode;
-				if(isDOM(c.from)) tp = this.connectionType.attributeToNode;
-				if(isDOM(c.to)) tp = this.connectionType.nodeToAttribute;
-				if(isDOM(c.from) && isDOM(c.to)) tp = this.connectionType.attributeToAttribute;	
+				var tp = getConnectionType(c.from,c.fromNode,c.to,c.toNode);
 				
 				switch(tp){
 				
@@ -112,7 +204,6 @@ var Pollen = new (function(){
 						if(c.from.pollenID == i && c.fromNode == p){
 							if(c.to.getAttribute(c.toNode) !== v || c.to[c.toNode] !== v){
 								c.to.setAttribute(c.toNode,v);
-								if(c.to[c.toNode] != undefined) c.to[c.toNode] = v;
 							}
 						}
 						break;
@@ -127,37 +218,101 @@ var Pollen = new (function(){
 						if(c.from.getAttribute("pollenID") == i && c.fromNode == p){
 							if(c.to.getAttribute(c.toNode) !== v || c.to[c.toNode] !== v){
 								c.to.setAttribute(c.toNode,v);
-								if(c.to[c.toNode] != undefined) c.to[c.toNode] = v;
 							}
 						}
 						break;
 					
-				
+					case this.connectionType.nodeToProperty:
+					case this.connectionType.propertyToProperty:
+						if(c.from.pollenID == i && c.fromNode == p){
+							if(c.to[c.toNode] !== v){
+								c.to[c.toNode] = v;
+							}
+						}
+						break;
+						
+					case this.connectionType.propertyToNode:
+						if(c.from.pollenID == i && c.fromNode == p){
+							if(c.to.getNode(c.toNode) !== v){
+								c.to.setNode(c.toNode,v);
+							}
+						}
+						break;
+						
+					case this.connectionType.propertyToAttribute:
+						if(c.from.pollenID == i && c.fromNode == p){
+							if(c.to.getAttribute(c.toNode) !== v){
+								c.to.setAttribute(c.toNode,v);
+							}
+						}
+						break;
+					
+					case this.connectionType.attributeToNode:
+						if(c.from.getAttribute("pollenID") == i && c.fromNode == p){
+							if(c.to[c.toNode] !== v){
+								c.to[c.toNode] = v;
+							}
+						}
+						break;
+					
 				}
 				
 			}
 			
 		}
 		
-		// TO DO implement a nicer attribute watch system for DOM
-		
-		function watchConnections(){
-			var c, cn, v;
-			for(cn in _connections){
-				c = _connections[cn];
-				if(c.type == this.connectionType.attributeToNode || c.type == this.connectionType.attributeToAttribute){
-					v = c.from.getAttribute(c.fromNode);
-					if(c.from[c.fromNode] != undefined) v = c.from[c.fromNode];
-					if(c.lastValue != v){
-						c.lastValue = v;
-						this.report(c.from.getAttribute('pollenID'),c.fromNode,v);
+		this.observer = (function(){
+			var _suf = 'PlnShadow';
+			var _obs = 'plnObserver';
+			
+			this.watch = function(obj,prop,handler,overrideListenToAttrOnDOM){
+				if(isDOM(obj) && overrideListenToAttrOnDOM!=true){
+					Object.defineProperty(obj,_obs,{
+						configurable:true,
+						value: new MutationObserver(function(mt){
+								for(var m in mt){
+									if(mt[m].attributeName == prop){
+										handler({object:obj,property:prop,oldValue:mt[m].oldValue,newValue:obj.getAttribute(prop)});
+									}
+								}
+							})
+						}
+					);
+					obj[_obs].observe(obj,{attributes:true,attributeOldValue:true});
+					return true;
+				}else{
+					var pd = Object.getOwnPropertyDescriptor(obj,prop);
+					if(pd){
+						Object.defineProperty(obj,prop+_suf,pd);
+						if(pd.configurable){
+							Object.defineProperty(obj,
+								prop,
+								{set:function(v){handler({object:obj,property:prop,oldValue:obj[prop],newValue:v});obj[prop+_suf]=v;}
+							});
+							return true;
+						}else{
+							return false; // can't listen to properties which aren't configurable	
+						}
+					}else{
+						return false;
 					}
 				}
 			}
-		}
+			this.ignore = function(obj,prop){
+				if(obj.constructor.name.indexOf('HTML')>-1){
+					obj[_obs].disconnect();
+					delete obj[_obs];
+				}else{
+					var pd = Object.getOwnPropertyDescriptor(obj,prop+_suf);
+					if(pd){
+						Object.defineProperty(obj,prop,pd);
+						delete obj[prop+_suf];
+					}
+				}
+			}
+			return this;
+		})();
 		
-		setInterval(watchConnections,_watchInterval);
-	
 		return this;
 		
 	})();
@@ -1299,6 +1454,7 @@ var Pollen = new (function(){
 				if(!_isDOM){
 							
 					o.hasNode = function(p){
+						if(o.nodes == undefined) return false;
 						return o.nodes[p];
 					}
 			
